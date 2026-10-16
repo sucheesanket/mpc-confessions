@@ -1,0 +1,12 @@
+{
+  "name": "mpc-party-night",
+  "version": "1.0.1",
+  "description": "College-only party night matching app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
