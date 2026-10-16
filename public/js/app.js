@@ -123,11 +123,10 @@ function viewSignup() {
             <label><input type="radio" name="gender" value="female"><span>Female</span></label>
             <label><input type="radio" name="gender" value="other"><span>Other</span></label>
           </div></div>
-        <div class="f">My partner <small>tick one or more</small>
-          <div class="chips" role="group" aria-label="My partner">
-            <label><input type="checkbox" name="interest" value="male"><span>Guys</span></label>
+        <div class="f">Who would you like to meet? <small>Select all that apply.</small>
+          <div class="chips" role="group" aria-label="Who would you like to meet?">
+            <label><input type="checkbox" name="interest" value="male"><span>Boys</span></label>
             <label><input type="checkbox" name="interest" value="female"><span>Girls</span></label>
-            <label><input type="checkbox" name="interest" value="other"><span>Others</span></label>
           </div></div>
         <label class="f">Bio <small>optional, 120 characters</small>
           <textarea name="bio" maxlength="120" placeholder="dancefloor menace, chai addict…"></textarea></label>
@@ -229,8 +228,8 @@ function go(tab) {
 async function refreshBadge() {
   try {
     const d = await api('/matches');
-    const un = d.matches.reduce((s, m) => s + m.unread, 0), b = $('#badge');
-    if (b) { b.hidden = !un; b.textContent = un; }
+    const count = d.matches.length, b = $('#badge');
+    if (b) { b.hidden = !count; b.textContent = count; b.setAttribute('aria-label', count + ' matches'); }
     if (lastMatchCount !== null && d.matches.length > lastMatchCount && curTab !== 'matches') toast('You have a new match 🔥');
     lastMatchCount = d.matches.length;
   } catch (e) {}
@@ -389,7 +388,8 @@ async function screenMatches() {
 ===================================================== */
 function viewChat(id) {
   stopTimers();
-  let last = 0, other = null, first = true;
+  let last = 0, other = null, first = true, pulling = false;
+  const renderedMessages = new Set();
   app.innerHTML = `
     <div class="chat">
       <header class="chead">
@@ -409,7 +409,8 @@ function viewChat(id) {
   $('#cb').addEventListener('click', leave);
 
   async function pull() {
-    if (document.hidden && !first) return;
+    if (pulling || (document.hidden && !first)) return;
+    pulling = true;
     try {
       const d = await api('/chat/' + encodeURIComponent(id) + '?after=' + last);
       if (!other) {
@@ -426,6 +427,8 @@ function viewChat(id) {
         box.querySelector('.starter')?.remove();
         d.messages.forEach((m) => {
           last = Math.max(last, m.n);
+          if (renderedMessages.has(m.n)) return;
+          renderedMessages.add(m.n);
           const el = document.createElement('div');
           el.className = 'b ' + (m.mine ? 'me' : 'them');
           el.textContent = m.text;
@@ -438,7 +441,7 @@ function viewChat(id) {
       first = false;
     } catch (e) {
       if (first) { toast(e.message); leave(); }
-    }
+    } finally { pulling = false; }
   }
   pull();
   timers.chat = setInterval(pull, 2500);
