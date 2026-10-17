@@ -1,12 +1,16 @@
 {
   "name": "mpc-party-night",
-  "version": "1.0.1",
-  "description": "College-only party night matching app",
+  "version": "1.1.0",
+  "description": "College-only party night matching app using MongoDB Atlas storage",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
+  "dependencies": {
+    "dotenv": "^18.0.8",
+    "mongodb": "^6.17.0"
+  },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   }
 }
